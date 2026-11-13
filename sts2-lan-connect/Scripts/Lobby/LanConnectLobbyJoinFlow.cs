@@ -440,6 +440,14 @@ internal static class LanConnectLobbyJoinFlow
     {
         if (joinResult.sessionState == RunSessionState.InLobby)
         {
+            if (joinResult.isCustom)
+            {
+                NCustomRunScreen submenu = stack.GetSubmenuType<NCustomRunScreen>();
+                submenu.InitializeMultiplayerAsClient(netService, joinResult.joinResponse!.Value);
+                stack.Push(submenu);
+                return;
+            }
+
             switch (joinResult.gameMode)
             {
                 case GameMode.Standard:
@@ -456,18 +464,19 @@ internal static class LanConnectLobbyJoinFlow
                     stack.Push(submenu);
                     return;
                 }
-                case GameMode.Custom:
-                {
-                    NCustomRunScreen submenu = stack.GetSubmenuType<NCustomRunScreen>();
-                    submenu.InitializeMultiplayerAsClient(netService, joinResult.joinResponse!.Value);
-                    stack.Push(submenu);
-                    return;
-                }
             }
         }
 
         if (joinResult.sessionState == RunSessionState.InLoadedLobby)
         {
+            if (joinResult.isCustom)
+            {
+                NCustomRunLoadScreen submenu = stack.GetSubmenuType<NCustomRunLoadScreen>();
+                submenu.InitializeAsClient(netService, joinResult.loadJoinResponse!.Value);
+                stack.Push(submenu);
+                return;
+            }
+
             switch (joinResult.gameMode)
             {
                 case GameMode.Standard:
@@ -480,13 +489,6 @@ internal static class LanConnectLobbyJoinFlow
                 case GameMode.Daily:
                 {
                     NDailyRunLoadScreen submenu = stack.GetSubmenuType<NDailyRunLoadScreen>();
-                    submenu.InitializeAsClient(netService, joinResult.loadJoinResponse!.Value);
-                    stack.Push(submenu);
-                    return;
-                }
-                case GameMode.Custom:
-                {
-                    NCustomRunLoadScreen submenu = stack.GetSubmenuType<NCustomRunLoadScreen>();
                     submenu.InitializeAsClient(netService, joinResult.loadJoinResponse!.Value);
                     stack.Push(submenu);
                     return;

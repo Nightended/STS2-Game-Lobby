@@ -371,16 +371,33 @@ internal static class LanConnectMultiplayerSaveRoomBinding
         }
     }
 
-    public static string GetLobbyGameMode(GameMode gameMode)
+    public static string GetLobbyGameMode(GameMode gameMode, bool isCustom = false)
     {
+        if (isCustom)
+        {
+            return "custom";
+        }
+
         return gameMode switch
         {
             GameMode.Standard => "standard",
-            GameMode.Custom => "custom",
             GameMode.Daily => "daily",
             _ => LanConnectConstants.DefaultGameMode
         };
     }
+
+    // Keep the existing three room choices independent of the game's enum:
+    // custom runs in 0.113 use GameMode.Standard plus IsCustomGame.
+    public static string GetLobbyGameMode(LanConnectLanHostMode mode) => mode switch
+    {
+        LanConnectLanHostMode.Standard => "standard",
+        LanConnectLanHostMode.Daily => "daily",
+        LanConnectLanHostMode.Custom => "custom",
+        _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
+    };
+
+    public static string GetLobbyGameModeLabel(LanConnectLanHostMode mode) =>
+        GetLobbyGameModeLabel(GetLobbyGameMode(mode));
 
     public static string GetLobbyGameModeLabel(GameMode gameMode)
     {
@@ -400,12 +417,7 @@ internal static class LanConnectMultiplayerSaveRoomBinding
 
     public static string GetLobbyGameMode(SerializableRun run)
     {
-        if (run.Modifiers.Count == 0)
-        {
-            return "standard";
-        }
-
-        return run.DailyTime.HasValue ? "daily" : "custom";
+        return GetLobbyGameMode(run.GameMode, run.IsCustomGame);
     }
 
     public static LobbySavedRunInfo BuildSavedRunInfo(SerializableRun run, ulong hostNetId, Dictionary<ulong, string>? storedPlayerNames = null)

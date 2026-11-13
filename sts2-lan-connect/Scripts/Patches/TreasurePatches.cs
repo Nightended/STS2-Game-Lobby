@@ -578,7 +578,7 @@ internal static class TreasurePatches
         }
 
         List<RelicPickingResult> results = new();
-        List<RelicModel> unclaimedRelics = new();
+        List<(RelicModel Relic, int Index)> unclaimedRelics = new();
         RelicPickingFightMove[] fightMoves = Enum.GetValues<RelicPickingFightMove>();
         Rng? rng = GetSyncRng(sync);
 
@@ -587,7 +587,7 @@ internal static class TreasurePatches
             List<Player> voters = playersByRelicIndex[i];
             if (voters.Count == 0)
             {
-                unclaimedRelics.Add(relics[i]);
+                unclaimedRelics.Add((relics[i], i));
             }
             else if (voters.Count == 1)
             {
@@ -595,12 +595,13 @@ internal static class TreasurePatches
                 {
                     type = RelicPickingResultType.OnlyOnePlayerVoted,
                     player = voters[0],
+                    relicIndex = i,
                     relic = relics[i]
                 });
             }
             else
             {
-                results.Add(RelicPickingResult.GenerateRelicFight(voters, relics[i],
+                results.Add(RelicPickingResult.GenerateRelicFight(voters, relics[i], i,
                     () => rng != null ? rng.NextItem(fightMoves) : fightMoves[0]));
             }
         }
@@ -629,7 +630,8 @@ internal static class TreasurePatches
             {
                 type = RelicPickingResultType.ConsolationPrize,
                 player = playersWithoutRelic[i],
-                relic = unclaimedRelics[i]
+                relicIndex = unclaimedRelics[i].Index,
+                relic = unclaimedRelics[i].Relic
             });
         }
 

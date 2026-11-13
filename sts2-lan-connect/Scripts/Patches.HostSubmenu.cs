@@ -5,7 +5,6 @@ using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.Screens.MainMenu;
-using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.addons.mega_text;
 
 namespace Sts2LanConnect.Scripts;
@@ -31,7 +30,7 @@ internal static class HostSubmenuPatches
                 return;
             }
 
-            NSubmenuButton template = submenu.GetNode<NSubmenuButton>("StandardButton");
+            NSubmenuButton template = submenu.GetNode<NSubmenuButton>("%StandardButton");
             Node parent = template.GetParent();
             NSubmenuButton? lanButton = template.Duplicate(DuplicateWithoutSignals) as NSubmenuButton;
             if (lanButton == null)
@@ -108,7 +107,7 @@ internal static class HostSubmenuPatches
         EnsureLanHostButton(submenu);
         if (!alreadyInstalled && FindHostButton(submenu) != null)
         {
-            NSubmenuButton template = submenu.GetNode<NSubmenuButton>("StandardButton");
+            NSubmenuButton template = submenu.GetNode<NSubmenuButton>("%StandardButton");
             Node? parent = template.GetParent();
             Log.Info($"sts2_lan_connect injected LAN host button via {source}; template={template.GetPath()}, parentType={parent?.GetType().FullName ?? "<null>"}");
         }
@@ -132,9 +131,9 @@ internal static class HostSubmenuPatches
 
     internal static LanConnectLanHostModeAvailability GetModeAvailability(
         NMultiplayerHostSubmenu submenu) => new(
-        submenu.GetNode<NSubmenuButton>("StandardButton").IsEnabled,
-        submenu.GetNode<NSubmenuButton>("DailyButton").IsEnabled,
-        submenu.GetNode<NSubmenuButton>("CustomRunButton").IsEnabled);
+        submenu.GetNode<NSubmenuButton>("%StandardButton").IsEnabled,
+        submenu.GetNode<NSubmenuButton>("%DailyButton").IsEnabled,
+        submenu.GetNode<NSubmenuButton>("%CustomRunButton").IsEnabled);
 
     private static async Task StartSelectedLanHostAsync(
         NMultiplayerHostSubmenu submenu,
@@ -149,14 +148,7 @@ internal static class HostSubmenuPatches
             return;
         }
 
-        GameMode gameMode = mode switch
-        {
-            LanConnectLanHostMode.Standard => GameMode.Standard,
-            LanConnectLanHostMode.Daily => GameMode.Daily,
-            LanConnectLanHostMode.Custom => GameMode.Custom,
-            _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
-        };
-        await LanConnectHostFlow.StartLanHostAsync(gameMode, loadingOverlay, stack);
+        await LanConnectHostFlow.StartLanHostAsync(mode, loadingOverlay, stack);
     }
 
     private static void ConfigureLanButton(NSubmenuButton button)

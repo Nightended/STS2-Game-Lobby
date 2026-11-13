@@ -4415,7 +4415,7 @@ internal sealed partial class LanConnectLobbyOverlay : Control
         {
             _roomNameInput.Text = roomName;
         }
-        GameMode gameMode = GetSelectedCreateGameMode();
+        LanConnectLanHostMode gameMode = GetSelectedCreateGameMode();
         if (!IsCreateGameModeAvailable(gameMode, GetCreateGameModeAvailability()))
         {
             string message = GetLockedCreateGameModeMessage(gameMode);
@@ -5064,13 +5064,13 @@ internal sealed partial class LanConnectLobbyOverlay : Control
         OnJoinRoomPressed(selectedRoom);
     }
 
-    private GameMode GetSelectedCreateGameMode()
+    private LanConnectLanHostMode GetSelectedCreateGameMode()
     {
         return _selectedCreateGameModeId switch
         {
-            1 => GameMode.Daily,
-            2 => GameMode.Custom,
-            _ => GameMode.Standard
+            1 => LanConnectLanHostMode.Daily,
+            2 => LanConnectLanHostMode.Custom,
+            _ => LanConnectLanHostMode.Standard
         };
     }
 
@@ -5096,7 +5096,7 @@ internal sealed partial class LanConnectLobbyOverlay : Control
         SetCreateGameModeOptionText(1, "多人每日挑战", availability.Daily);
         SetCreateGameModeOptionText(2, "自定义模式", availability.Custom);
 
-        GameMode selectedMode = GetSelectedCreateGameMode();
+        LanConnectLanHostMode selectedMode = GetSelectedCreateGameMode();
         if (!IsCreateGameModeAvailable(selectedMode, availability))
         {
             ResetCreateGameModeSelection();
@@ -5111,7 +5111,7 @@ internal sealed partial class LanConnectLobbyOverlay : Control
         }
 
         int selectedId = _roomTypeOption.GetItemId((int)selectedIndex);
-        GameMode selectedMode = GameModeFromCreateId(selectedId);
+        LanConnectLanHostMode selectedMode = GameModeFromCreateId(selectedId);
         LanConnectLanHostModeAvailability availability = GetCreateGameModeAvailability();
         if (!IsCreateGameModeAvailable(selectedMode, availability))
         {
@@ -5179,27 +5179,27 @@ internal sealed partial class LanConnectLobbyOverlay : Control
         return -1;
     }
 
-    private static GameMode GameModeFromCreateId(int id) => id switch
+    private static LanConnectLanHostMode GameModeFromCreateId(int id) => id switch
     {
-        1 => GameMode.Daily,
-        2 => GameMode.Custom,
-        _ => GameMode.Standard
+        1 => LanConnectLanHostMode.Daily,
+        2 => LanConnectLanHostMode.Custom,
+        _ => LanConnectLanHostMode.Standard
     };
 
     private static bool IsCreateGameModeAvailable(
-        GameMode gameMode,
+        LanConnectLanHostMode gameMode,
         LanConnectLanHostModeAvailability availability) => gameMode switch
     {
-        GameMode.Standard => availability.Standard,
-        GameMode.Daily => availability.Daily,
-        GameMode.Custom => availability.Custom,
+        LanConnectLanHostMode.Standard => availability.Standard,
+        LanConnectLanHostMode.Daily => availability.Daily,
+        LanConnectLanHostMode.Custom => availability.Custom,
         _ => false
     };
 
-    private static string GetLockedCreateGameModeMessage(GameMode gameMode) => gameMode switch
+    private static string GetLockedCreateGameModeMessage(LanConnectLanHostMode gameMode) => gameMode switch
     {
-        GameMode.Daily => "多人每日挑战尚未解锁，当前不能创建该类型房间。",
-        GameMode.Custom => "自定义模式尚未解锁，当前不能创建该类型房间。",
+        LanConnectLanHostMode.Daily => "多人每日挑战尚未解锁，当前不能创建该类型房间。",
+        LanConnectLanHostMode.Custom => "自定义模式尚未解锁，当前不能创建该类型房间。",
         _ => "该模式尚未解锁，当前不能创建房间。"
     };
 

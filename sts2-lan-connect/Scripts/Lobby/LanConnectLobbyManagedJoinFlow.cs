@@ -115,28 +115,15 @@ internal sealed class LanConnectLobbyManagedJoinFlow
             string peerMetadata = hostInfo.HasVersionMetadata
                 ? $"Version={hostInfo.Version} Hash={hostInfo.IdDatabaseHash}"
                 : "VersionMetadata=unavailable";
-            _logger.Info($"Got initial game info message. {peerMetadata} Mode={initialMessage.gameMode} State={sessionState}");
+            _logger.Info($"Got initial game info message. {peerMetadata} State={sessionState}");
 
+            // 0.113 moves the mode out of InitialGameInfoMessage. Wait for the
+            // appropriate response before selecting the lobby or resumed-run UI.
             return sessionState switch
             {
-                RunSessionState.InLobby => new JoinResult
-                {
-                    gameMode = initialMessage.gameMode,
-                    sessionState = sessionState,
-                    joinResponse = await AttemptJoin(NetService)
-                },
-                RunSessionState.InLoadedLobby => new JoinResult
-                {
-                    gameMode = initialMessage.gameMode,
-                    sessionState = sessionState,
-                    loadJoinResponse = await AttemptLoadJoin(NetService)
-                },
-                RunSessionState.Running => new JoinResult
-                {
-                    gameMode = initialMessage.gameMode,
-                    sessionState = sessionState,
-                    rejoinResponse = await AttemptRejoin(NetService)
-                },
+                RunSessionState.InLobby => CreateJoinResult(await AttemptJoin(NetService)),
+                RunSessionState.InLoadedLobby => CreateJoinResult(await AttemptLoadJoin(NetService)),
+                RunSessionState.Running => CreateJoinResult(await AttemptRejoin(NetService)),
                 _ => throw new InvalidOperationException($"Received invalid state {sessionState} from connection."),
             };
         }
@@ -173,6 +160,30 @@ internal sealed class LanConnectLobbyManagedJoinFlow
             }
         }
     }
+
+    internal static JoinResult CreateJoinResult(ClientLobbyJoinResponseMessage response) => new()
+    {
+        gameMode = response.gameMode,
+        isCustom = response.isCustom,
+        sessionState = RunSessionState.InLobby,
+        joinResponse = response
+    };
+
+    internal static JoinResult CreateJoinResult(ClientLoadJoinResponseMessage response) => new()
+    {
+        gameMode = response.serializableRun.GameMode,
+        isCustom = response.serializableRun.IsCustomGame,
+        sessionState = RunSessionState.InLoadedLobby,
+        loadJoinResponse = response
+    };
+
+    internal static JoinResult CreateJoinResult(ClientRejoinResponseMessage response) => new()
+    {
+        gameMode = response.serializableRun.GameMode,
+        isCustom = response.serializableRun.IsCustomGame,
+        sessionState = RunSessionState.Running,
+        rejoinResponse = response
+    };
 
     private static async Task<NetErrorInfo?> ConnectAsync(
         object initializer,
@@ -459,7 +470,8 @@ internal sealed class LanConnectLobbyManagedJoinFlow
         UnlockState unlockState = SaveManager.Instance.GenerateUnlockStateFromProgress();
         ClientLobbyJoinRequestMessage message = new()
         {
-            maxAscensionUnlocked = SaveManager.Instance.Progress.MaxMultiplayerAscension,
+            maxStandardAscension = SaveManager.Instance.Progress.MaxMultiplayerAscension,
+            maxBlitzAscension = SaveManager.Instance.Progress.MaxBlitzAscension,
             unlockState = unlockState.ToSerializable()
         };
         message = LanConnectLobbyHandshakeCompatibility.AttachLocalVersionInfo(message);

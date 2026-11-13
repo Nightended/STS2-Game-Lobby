@@ -35,7 +35,7 @@ internal static class LanConnectHostFlow
         return true;
     }
 
-    public static async Task StartLanHostAsync(GameMode gameMode, Control loadingOverlay, NSubmenuStack stack)
+    public static async Task StartLanHostAsync(LanConnectLanHostMode gameMode, Control loadingOverlay, NSubmenuStack stack)
     {
         if (LanConnectDegradedMode.CreateBlockingFailure() is { } degradedFailure)
         {
@@ -142,7 +142,7 @@ internal static class LanConnectHostFlow
     public static async Task<LanConnectHostAttemptResult> StartLobbyHostAsync(
         string roomName,
         string? password,
-        GameMode gameMode,
+        LanConnectLanHostMode gameMode,
         Control loadingOverlay,
         NSubmenuStack stack,
         LanConnectCreateRoomIntent intent)
@@ -308,7 +308,8 @@ internal static class LanConnectHostFlow
         int maxPlayers,
         bool notifyOnFailure,
         LanConnectProtocolSelection? persistedSelection = null,
-        bool throwOnCreateGuardRejection = false)
+        bool throwOnCreateGuardRejection = false,
+        bool isCustom = false)
     {
         LanConnectProtocolFailure? resumeSelectionFailure = ValidateExistingHostPublishSelection(
             boundSaveKey,
@@ -345,7 +346,7 @@ internal static class LanConnectHostFlow
         LanConnectSessionProtocolLease? protocolLease = null;
         bool leaseTransferred = false;
         string playerName = LanConnectConfig.GetEffectivePlayerDisplayName();
-        string lobbyGameMode = LanConnectMultiplayerSaveRoomBinding.GetLobbyGameMode(gameMode);
+        string lobbyGameMode = LanConnectMultiplayerSaveRoomBinding.GetLobbyGameMode(gameMode, isCustom);
         int localAddressCount = LanConnectNetUtil.GetLanAddressStrings().Count;
 
         GD.Print(
@@ -635,11 +636,11 @@ internal static class LanConnectHostFlow
     private static string BuildHostLeaseOwner(NetHostGameService netService) =>
         $"host:{netService.GetHashCode():x8}";
 
-    private static void PushHostScreen(GameMode gameMode, NSubmenuStack stack, NetHostGameService netService, int maxPlayers)
+    private static void PushHostScreen(LanConnectLanHostMode gameMode, NSubmenuStack stack, NetHostGameService netService, int maxPlayers)
     {
         switch (gameMode)
         {
-            case GameMode.Standard:
+            case LanConnectLanHostMode.Standard:
             {
                 NCharacterSelectScreen submenu = stack.GetSubmenuType<NCharacterSelectScreen>();
                 submenu.InitializeMultiplayerAsHost(netService, maxPlayers);
@@ -647,7 +648,7 @@ internal static class LanConnectHostFlow
                 LanConnectInviteButtonPatch.ScheduleEnsureInviteButton(submenu, "push_host_screen");
                 break;
             }
-            case GameMode.Daily:
+            case LanConnectLanHostMode.Daily:
             {
                 NDailyRunScreen submenu = stack.GetSubmenuType<NDailyRunScreen>();
                 submenu.InitializeMultiplayerAsHost(netService);

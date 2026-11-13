@@ -361,7 +361,8 @@ internal static class LanConnectContinueRunLobbyAutoPublisher
                 savedRunInfo: savedRunInfo,
                 maxPlayers: LanConnectMultiplayerCompatibility.GetEffectiveMaxPlayers(),
                 notifyOnFailure: false,
-                persistedSelection: binding.ProtocolSelection);
+                persistedSelection: binding.ProtocolSelection,
+                isCustom: context.Run.IsCustomGame);
             if (ScreenState.IsAttemptStale(attempt))
             {
                 return;

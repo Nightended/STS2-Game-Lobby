@@ -5,7 +5,7 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Logging;
-using MegaCrit.Sts2.Core.Models.Singleton;
+using MegaCrit.Sts2.Core.Models;
 
 namespace Sts2LanConnect.Scripts;
 
@@ -50,6 +50,7 @@ internal static class DifficultyScalingPatches
     {
         MethodInfo helper = AccessTools.Method(typeof(DifficultyScalingPatches), nameof(GetEffectivePlayerCount));
         FieldInfo? runStateField = AccessTools.Field(typeof(MultiplayerScalingModel), "_runState");
+        MethodInfo? runStateGetter = AccessTools.PropertyGetter(typeof(RunModel), "RunState");
 
         bool foundRunStateLoad = false;
 
@@ -57,7 +58,8 @@ internal static class DifficultyScalingPatches
         {
             yield return instruction;
 
-            if (!foundRunStateLoad && runStateField != null && instruction.LoadsField(runStateField))
+            if (!foundRunStateLoad && ((runStateField != null && instruction.LoadsField(runStateField))
+                || (runStateGetter != null && instruction.Calls(runStateGetter))))
             {
                 foundRunStateLoad = true;
                 continue;

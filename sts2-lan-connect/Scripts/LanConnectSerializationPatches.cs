@@ -348,6 +348,8 @@ internal static class LanConnectSerializationPatches
         RequireField(joinResponseType, "dailyTime", static type => type.IsGenericType
             && type.GetGenericTypeDefinition() == typeof(Nullable<>));
         RequireField(joinResponseType, "seed", static type => type == typeof(string));
+        RequireField(joinResponseType, "gameMode", static type => type == typeof(MegaCrit.Sts2.Core.Runs.GameMode));
+        RequireField(joinResponseType, "isCustom", static type => type == typeof(bool));
         RequireField(joinResponseType, "ascension", static type => type == typeof(int));
         RequireField(joinResponseType, "modifiers", static type => IsList(type));
     }
@@ -559,7 +561,7 @@ internal static class LanConnectSerializationPatches
     }
 
     // 镜像原版 ClientLobbyJoinResponseMessage.Serialize：仅 playersInLobby 的列表位宽
-    // 换成 compat 宽度，其余字段（含 ascension 的 5 bit）逐项保持原版写法。
+    // 换成 compat 宽度，其余字段逐项保持 0.113 原版写法。
     internal static void SerializeJoinResponseBody(
         PacketWriter writer,
         ClientLobbyJoinResponseMessage message,
@@ -585,6 +587,8 @@ internal static class LanConnectSerializationPatches
             writer.WriteString(message.seed);
         }
 
+        writer.WriteEnum(message.gameMode);
+        writer.WriteBool(message.isCustom);
         writer.WriteInt(message.ascension, JoinResponseAscensionBits);
         writer.WriteList(message.modifiers);
     }
